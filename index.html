@@ -2,13 +2,59 @@
 <html>
 <body>
 
-<h2>Commoner vs. Guard</h2>
+<h1>Welcome to fight club</h1>
 
-<button type="simulate"
-onclick="simulate()">
-Click to simulate results</button>
+<h2 contenteditable="true" id="t1_name">
+    Team 1
+</h2>
+<table id="t1" border="1">
+    <tr>
+        <td>Name</td>
+        <td>Type</td>
+    </tr>
+    <tr>
+        <td contenteditable="true">Carl</td>
+        <td>
+            <select id="t1_p1_type">
+                <option value="commoner">Commoner</option>
+                <option value="guard">Guard</option>
+            </select>
+        </td>
+    </tr>
+</table>
+<button onclick="addPlayer('t1')">
+    Add player
+</button>
+
+<h2 contenteditable="true" id="t2_name">
+    Team 2
+</h2>
+<table id="t2" border="1">
+    <tr>
+        <td>Name</td>
+        <td>Type</td>
+    </tr>
+    <tr>
+        <td contenteditable="true">Gary</td>
+        <td>
+            <select id="t2_p1_type">
+                <option value="commoner">Commoner</option>
+                <option value="guard">Guard</option>
+            </select>
+        </td>
+    </tr>
+</table>
+<button onclick="addPlayer('t2')">
+    Add player
+</button>
+
+<br>
+
+<button type="simulate" onclick="simulate()">
+    Fight!
+</button>
+
 <div id="text"></div>
-
 <script src="main.js"></script>
 
 </body>

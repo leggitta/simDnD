@@ -179,6 +179,7 @@ class Encounter {
         this.characters = characters;
         this.winner = null;
         this.text = "";
+        this.n_rounds = 0;
 
         // place characters on grid
 
@@ -194,6 +195,7 @@ class Encounter {
         }
         // iterate through rounds
         for (let i=0; i<10; i++) {
+            this.n_rounds += 1;
             this.round();
 
             // check for winner
@@ -231,15 +233,53 @@ class Encounter {
 }
 
 function simulate() {
-    let c1 = new Commoner();
-    c1.name = 'James';
-    
-    let c2 = new Commoner();
-    c2.name = 'Emily';
-    
-    let guard = new Guard();
-    guard.name = 'Officer Carol';
+    const characters = [];
 
-    let encounter = new Encounter([c1, c2, guard]);
+    // assemble teams
+    for (let team=1; team<3; team++) {
+        // get team name
+        let t_name = document.getElementById(`t${team}_name`).innerText;
+        
+        // get player table
+        let tbl = document.getElementById(`t${team}`);
+
+        // loop through players
+        for (let i=1; i<tbl.rows.length; i++) {
+            // get name and type
+            let row = tbl.rows[i];
+            let name = row.cells.item(0).innerText;
+            let id = `t${team}_p${i}_type`
+            let type = document.getElementById(id);
+
+            // create new character object
+            var c = null
+            if (type.value == "commoner") {
+                c = new Commoner();
+            } else if (type.value == "guard") {
+                c = new Guard();
+            } else {
+                console.log(type);
+            }
+            c.name = name;
+            c.team = t_name;
+            characters.push(c);
+        }
+    }
+
+    // let encounter = new Encounter([c1, c2, c3, guard]);
+    let encounter = new Encounter(characters);
     document.getElementById("text").innerHTML = encounter.text;
+}
+
+function addPlayer(id) {
+    var table = document.getElementById(id);
+    let n_rows = table.rows.length;
+    var row = table.insertRow(n_rows);
+    row.innerHTML = `
+        <td contenteditable="true"></td>
+        <td><select id="${id}_p${n_rows}_type">
+            <option value="commoner">Commoner</option>
+            <option value="guard">Guard</option>
+        </select></td>
+    `;
 }
