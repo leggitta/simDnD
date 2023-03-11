@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Commoner vs. Guard</h2>
+
+<button type="simulate"
+onclick="simulate()">
+Click to simulate results</button>
+<div id="text"></div>
+
+<script>
+function roll(n) {
+    return Math.floor(Math.random() * n) + 1;
+}
+function mod(n) {
+    return Math.floor((n - 10) / 2);
+}
+
+class Character {
+    constructor() {
+        this.name = "Blank";
+        this.str = 0;
+        this.dex = 0;
+        this.con = 0;
+        this.int = 0;
+        this.wis = 0;
+        this.cha = 0;
+
+        this.armor_class = 0;
+        this.hit_points = 0;
+
+        this.melee_attack_bonus = 0;
+        this.melee_damage_dice = [0];
+        this.melee_damage_bonus = 0;
+    }
+    roll_initiative() {
+        var text = '';
+        let val = roll(20) + mod(this.dex);
+        this.initiative = val;
+        text += `<br>${this.name} rolled ${this.initiative} for initiative`
+        return text
+    }
+    melee_attack(target) {
+        var text = `<br>${this.name} attacks ${target.name}`;
+
+        // roll to hit
+        let val = roll(20) + this.melee_attack_bonus;
+        text += `<br>${this.name} rolled ${val} against armor class ${target.armor_class}`;
+        if (val >= target.armor_class) {
+            text += `<br>Hit!`;
+        } else {
+            text += `<br>Miss!`;
+            return text;
+        }
+        
+        // roll damage
+        var dmg = this.melee_damage_bonus;
+        for (let i=0; i< this.melee_damage_dice.length; i++) {
+            dmg += roll(this.melee_damage_dice[i]);
+        }
+        text += `<br>${this.name} rolled ${dmg} damage`;
+        target.hit_points -= dmg;
+        text += `<br>${target.name} has ${target.hit_points} hit points left`;
+
+        return text 
+    }
+}
+class Commoner extends Character {
+    constructor() {
+        super();
+        this.name = "Commoner";
+        this.str = 10;
+        this.dex = 10;
+        this.con = 10;
+        this.int = 10;
+        this.wis = 10;
+        this.cha = 10;
+
+        this.armor_class = 10;
+        this.hit_points = 4;
+
+        this.melee_attack_bonus = 2;
+        this.melee_damage_dice = [4];
+        this.melee_damage_bonus = 0;
+    }
+}
+class Guard extends Character {
+    constructor() {
+        super();
+        this.name = "Guard";
+        this.str = 13;
+        this.dex = 12;
+        this.con = 12;
+        this.int = 10;
+        this.wis = 11;
+        this.cha = 10;
+
+        this.armor_class = 16;
+        this.hit_points = 11;
+
+        this.melee_attack_bonus = 3;
+        this.melee_damage_dice = [6];
+        this.melee_damage_bonus = 1;
+    }
+}
+
+function simulate() {
+    var text = "";
+    let commoner = new Commoner();
+    let guard = new Guard();
+    const order = [];
+
+    text += commoner.roll_initiative();
+    text += guard.roll_initiative();
+
+    if (commoner.initiative > guard.initiative) {
+        text += '<br>Commoner goes first';
+        order[0] = commoner;
+        order[1] = guard;
+    } else {
+        text += '<br>Guard goes first';
+        order[1] = commoner;
+        order[0] = guard;
+    }
+    while (commoner.hit_points > 0 & guard.hit_points > 0) {
+        for (let i=0; i< order.length; i++) {
+            if (order[i].hit_points > 0) {
+                text += `<br>${order[i].name}'s turn`;
+                text += order[i].melee_attack(order[1-i]);
+            } else {
+                text += `<br>${order[i].name} is unconscious`;
+                break
+            }
+        }
+    }
+    if (commoner.hit_points > 0 & guard.hit_points < 1) {
+        text += `<br>Commoner wins!`;
+    } else if (commoner.hit_points < 1 & guard.hit_points > 0) {
+        text += `<br>Guard wins!`;
+    } else {
+        text += `ERROR!!!`
+    }
+
+    document.getElementById("text").innerHTML = text;
+}
+</script>
+
+</body>
+</html> 
