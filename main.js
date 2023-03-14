@@ -6,9 +6,7 @@ function mod(n) {
 }
 
 class Character {
-    x = 0;
-    y = 0;
-    constructor(x, y) {
+    constructor(x=0, y=0) {
         this.name = "Blank";
         this.team = "Team A";
         this.target = null;
@@ -110,8 +108,8 @@ class Character {
     }
 }
 class Commoner extends Character {
-    constructor() {
-        super();
+    constructor(x, y) {
+        super(x, y);
         this.name = "Commoner";
         this.team = "Commoners";
         this.str = 10;
@@ -130,7 +128,8 @@ class Commoner extends Character {
     }
 }
 class Bandit extends Character {
-    constructor() {
+    constructor(x, y) {
+        super(x, y);
         this.name = "Bandit";
         this.team = "Bandits";
         this.str = 11;
@@ -154,8 +153,8 @@ class Bandit extends Character {
     }
 }
 class Guard extends Character {
-    constructor() {
-        super();
+    constructor(x, y) {
+        super(x, y);
         this.name = "Guard";
         this.team = "Guards";
         this.str = 13;
@@ -174,12 +173,63 @@ class Guard extends Character {
     }
 }
 
+class GridSquare {
+    constructor(grid, i=0, j=0) {
+        this.grid = grid;
+        this.i = i;
+        this.j = j;
+        this.occupied = false;
+    }
+    get_neighbors() {
+        this.neighbors = [];
+
+        // loop through squares
+        for (let k=0; k<this.grid.squares.length; k++) {
+            let square = this.grid.squares[k];
+            
+            // compute euclidean distance
+            let dx = this.i - square.i;
+            let dy = this.j - square.j;
+            let dr2 = dx * dx + dy * dy;
+            if (dr2 > 0 & dr2 < 3) {
+                this.neighbors.push(square);
+            }
+        }
+    }
+}
+
+class Grid {
+    constructor(W=10, H=10) {
+        this.W = W;
+        this.H = H;
+
+        // create grid squares
+        this.squares = [];
+        for (let i=0; i<this.W; i++) {
+            for (let j=0; j<this.H; j++) {
+                let square = new GridSquare(this, i, j);
+                this.squares.push(square);
+            }
+        }
+        // compute neighbors for each grid square
+        for (let k=0; k<this.squares.length; k++) {
+            this.squares[k].get_neighbors();
+        }
+    }
+    get_square(i, j) {
+        return this.squares[this.W * i + j];
+    }
+}
+
 class Encounter {
     constructor(characters) {
         this.characters = characters;
         this.winner = null;
         this.text = "";
         this.n_rounds = 0;
+
+        // create grid
+        this.grid = new Grid();
 
         // place characters on grid
 
@@ -245,18 +295,20 @@ function simulate() {
 
         // loop through players
         for (let i=1; i<tbl.rows.length; i++) {
-            // get name and type
+            // get name, type, and position
             let row = tbl.rows[i];
             let name = row.cells.item(0).innerText;
+            let x = row.cells.item(2).innerText;
+            let y = row.cells.item(3).innerText;
             let id = `t${team}_p${i}_type`
             let type = document.getElementById(id);
 
             // create new character object
             var c = null
             if (type.value == "commoner") {
-                c = new Commoner();
+                c = new Commoner(x, y);
             } else if (type.value == "guard") {
-                c = new Guard();
+                c = new Guard(x, y);
             } else {
                 console.log(type);
             }
@@ -269,6 +321,7 @@ function simulate() {
     // let encounter = new Encounter([c1, c2, c3, guard]);
     let encounter = new Encounter(characters);
     document.getElementById("text").innerHTML = encounter.text;
+    console.log(encounter);
 }
 
 function addPlayer(id) {
