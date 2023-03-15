@@ -5,6 +5,28 @@ function mod(n) {
     return Math.floor((n - 10) / 2);
 }
 
+class Weapon {
+    constructor(
+        name = 'none',
+        hit_bonus = 0,
+        damage_bonus = 0,
+        damage_dice = [0],
+        damage_type = 'none',
+        range = 0,
+        is_ranged = false,
+        is_melee = false
+    ) {
+        this.name = name;
+        this.hit_bonus = hit_bonus;
+        this.damage_bonus = damage_bonus;
+        this.damage_dice = damage_dice;
+        this.damage_type = damage_type;
+        this.range = range;
+        this.is_ranged = is_ranged;
+        this.is_melee = is_melee;
+    }
+}
+
 class Character {
     constructor(x=0, y=0) {
         this.name = "Blank";
@@ -26,15 +48,7 @@ class Character {
         this.armor_class = 0;
         this.hit_points = 0;
 
-        // attacks
-        this.melee_attack_bonus = 0;
-        this.melee_damage_dice = [0];
-        this.melee_damage_bonus = 0;
-
-        this.ranged_attack_bonus = 0;
-        this.ranged_damage_dice = [0];
-        this.ranged_damage_bonues = 0;
-        this.ranged_attack_range = 0;
+        this.weapons = [];
     }
     roll_initiative() {
         var text = '';
@@ -47,25 +61,36 @@ class Character {
         // clear any existing targets
         // (e.g. characters with less than 1 hit point)
         this.target = null;
+        this.target_distance = 9e9;
 
-        // by default, choose the next character from the opposite team
-        // with at least one hit point
+        // by default, choose the nearest character
         for (let i=0; i<encounter.characters.length; i++) {
-            if (
-                encounter.characters[i].team != this.team
-                & encounter.characters[i].hit_points > 0
-            ) {
-                this.target = encounter.characters[i];
-                return `<br>${this.name} targets ${this.target.name}`;
+            let char = encounter.characters[i];
+
+            // only consider targets on the opposite team with positive hit points
+            if (char.team != this.team & char.hit_points > 0) {
+
+                // compute euclidean distance
+                let dx = this.x - char.x;
+                let dy = this.y - char.y;
+                let dr = Math.sqrt(dx * dx + dy * dy);
+                console.log(dr);
+                if (dr < this.target_distance) {
+                    this.target = char;
+                    this.target_distance = dr;
+                }
             }
         }
-        return "<br>No targets are available";
+        if (this.target == null) {
+            return "<br>No targets are available";
+        }
+        return `<br>${this.name} targets ${this.target.name}`;
     }
-    melee_attack(target) {
-        var text = `<br>${this.name} attacks ${target.name}`;
+    attack(target, weapon) {
+        var text = `<br>${this.name} attacks ${target.name} with ${weapon.name}`;
 
         // roll to hit
-        let val = roll(20) + this.melee_attack_bonus;
+        let val = roll(20) + weapon.hit_bonus;
         text += `<br>${this.name} rolled ${val} against armor class ${target.armor_class}`;
         if (val >= target.armor_class) {
             text += `<br>Hit!`;
@@ -75,11 +100,11 @@ class Character {
         }
         
         // roll damage
-        var dmg = this.melee_damage_bonus;
-        for (let i=0; i< this.melee_damage_dice.length; i++) {
-            dmg += roll(this.melee_damage_dice[i]);
+        var dmg = weapon.damage_bonus;
+        for (let i=0; i< weapon.damage_dice.length; i++) {
+            dmg += roll(weapon.damage_dice[i]);
         }
-        text += `<br>${this.name} rolled ${dmg} damage`;
+        text += `<br>${this.name} rolled ${dmg} ${weapon.damage_type} damage`;
         target.hit_points -= dmg;
         text += `<br>${target.name} has ${target.hit_points} hit points left`;
         return text 
@@ -92,17 +117,16 @@ class Character {
             text += `<br>${this.name} is unconscious`;
             return text;
         }
-        // check for existing target
-        if (this.target === null) {
-            text += this.choose_target(encounter);
-        } else {
-            // check that existing target is conscious
-            if (this.target.hit_points < 1) {
-                text += this.choose_target(encounter);
-            }
-        }
+        // choose target
+        this.choose_target(encounter);
+
+        // choose weapon
+
+        // movement
+
+        // attack
         if (this.target != null) {
-            text += this.melee_attack(this.target);
+            text += this.attack(this.target);
         }
         return text;
     }
@@ -190,8 +214,8 @@ class GridSquare {
             // compute euclidean distance
             let dx = this.i - square.i;
             let dy = this.j - square.j;
-            let dr2 = dx * dx + dy * dy;
-            if (dr2 > 0 & dr2 < 3) {
+            let dr = Math.sqrt(dx * dx + dy * dy);
+            if (dr > 0 & dr < 1.9) {
                 this.neighbors.push(square);
             }
         }
@@ -237,6 +261,15 @@ class Encounter {
             let y = this.characters[i].y
             let square = this.grid.get_square(x, y);
 
+            // check for valid coordinates
+            if (x < 0 | y < 0) {
+                this.text = "All coordinates must be positive";
+                return
+            }
+            if (x >= this.grid.W | y >= this.grid.H) {
+                this.text = "Coordinates must fit inside of arena";
+                return
+            }
             // raise error if square is already occupied
             if (square.occupied) {
                 this.text = "Two players cannot occupy the same space!<br>Please try again"
