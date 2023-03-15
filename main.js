@@ -232,6 +232,19 @@ class Encounter {
         this.grid = new Grid();
 
         // place characters on grid
+        for (let i = 0; i < this.characters.length; i++) {
+            let x = this.characters[i].x
+            let y = this.characters[i].y
+            let square = this.grid.get_square(x, y);
+
+            // raise error if square is already occupied
+            if (square.occupied) {
+                this.text = "Two players cannot occupy the same space!<br>Please try again"
+                return
+            }
+            this.characters[i].grid_square = this.grid.get_square(x, y);
+            this.grid.get_square(x, y).occupied = true;
+        }
 
         // roll initiative
         for (let i = 0; i < this.characters.length; i++) {
@@ -298,8 +311,8 @@ function simulate() {
             // get name, type, and position
             let row = tbl.rows[i];
             let name = row.cells.item(0).innerText;
-            let x = row.cells.item(2).innerText;
-            let y = row.cells.item(3).innerText;
+            let x = parseInt(row.cells.item(2).innerText);
+            let y = parseInt(row.cells.item(3).innerText);
             let id = `t${team}_p${i}_type`
             let type = document.getElementById(id);
 
@@ -325,6 +338,15 @@ function simulate() {
 }
 
 function addPlayer(id) {
+    // grid width and height
+    let W = parseInt(document.getElementById("grid_w").value);
+    let H = parseInt(document.getElementById("grid_h").value);
+
+    // random coordinates for new player
+    let x = Math.floor(Math.random() * W);
+    let y = Math.floor(Math.random() * H);
+
+    // read player table
     var table = document.getElementById(id);
     let n_rows = table.rows.length;
     var row = table.insertRow(n_rows);
@@ -334,5 +356,7 @@ function addPlayer(id) {
             <option value="commoner">Commoner</option>
             <option value="guard">Guard</option>
         </select></td>
+        <td contenteditable="true">${x}</td>
+        <td contenteditable="true">${y}</td>
     `;
 }
