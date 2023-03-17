@@ -111,9 +111,14 @@ class Character {
         text += `<br>${target.name} has ${target.hit_points} hit points left`;
         return text 
     }
-    move_to_target() {
+    move_to_target(range=0) {
         var text = '';
         while (this.movement > 0) {
+            // stop moving if target is within range
+            if (this.target_distance <= range) {
+                text += '<br>Target within range';
+                break
+            }
             // stop moving if target is adjacent
             if (this.grid_square.neighbors.includes(this.target.grid_square)) {
                 text += `<br>${this.name} has reached ${this.target.name}`;
@@ -185,26 +190,17 @@ class Character {
                 this.movement = this.speed;
                 text += this.move_to_target();
             }
-
-            // Case 1: target within 5 feet -> melee attack
-            
-
-            // Case 2: no ranged weapon, target within 30 ft. -> move and melee attack
-            // Case 3: no ranged weapon, target >30 ft. -> dash to target
         } else {
-            // Case 4: ranged weapon, target within normal range -> ranged attack
-            // Case 5: ranged weapon, max range > target > normal range -> move and ranged attack
-            // Case 6: ranged weapon, target > max range -> move towards target
+            this.move_to_target(this.ranged_weapon.normal_range);
+
+            if (this.target_distance <= this.ranged_weapon.normal_range) {
+                text += this.attack(this.target, this.ranged_weapon);
+            } else {
+                text += '<br>Dash';
+                this.movement = this.speed;
+                text += this.move_to_target(this.ranged_weapon.normal_range);
+            }
         }
-
-        // choose weapon
-
-        // movement
-
-        // attack
-        // if (this.target != null) {
-        //     text += this.attack(this.target);
-        // }
 
         // end turn
         this.movement = this.speed;
@@ -426,6 +422,8 @@ function simulate() {
                 c = new Commoner(x, y);
             } else if (type.value == "guard") {
                 c = new Guard(x, y);
+            } else if (type.value == 'bandit') {
+                c = new Bandit(x, y);
             } else {
                 console.log(type);
             }
@@ -457,6 +455,7 @@ function addPlayer(id) {
     row.innerHTML = `
         <td contenteditable="true"></td>
         <td><select id="${id}_p${n_rows}_type">
+            <option value="Bandit">Bandit</option>
             <option value="commoner">Commoner</option>
             <option value="guard">Guard</option>
         </select></td>
