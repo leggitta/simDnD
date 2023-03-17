@@ -12,18 +12,16 @@ class Weapon {
         damage_bonus = 0,
         damage_dice = [0],
         damage_type = 'none',
-        range = 0,
-        is_ranged = false,
-        is_melee = false
+        normal_range = null,
+        max_range = null
     ) {
         this.name = name;
         this.hit_bonus = hit_bonus;
         this.damage_bonus = damage_bonus;
         this.damage_dice = damage_dice;
         this.damage_type = damage_type;
-        this.range = range;
-        this.is_ranged = is_ranged;
-        this.is_melee = is_melee;
+        this.normal_range = normal_range;
+        this.max_range = max_range;
     }
 }
 
@@ -47,8 +45,12 @@ class Character {
 
         this.armor_class = 0;
         this.hit_points = 0;
+        this.speed = 30;
+        this.movement = 30;
+        this.grid_square = null;
 
-        this.weapons = [];
+        this.melee_weapon = null;
+        this.ranged_weapon = null;
     }
     roll_initiative() {
         var text = '';
@@ -74,7 +76,6 @@ class Character {
                 let dx = this.x - char.x;
                 let dy = this.y - char.y;
                 let dr = Math.sqrt(dx * dx + dy * dy);
-                console.log(dr);
                 if (dr < this.target_distance) {
                     this.target = char;
                     this.target_distance = dr;
@@ -91,7 +92,8 @@ class Character {
 
         // roll to hit
         let val = roll(20) + weapon.hit_bonus;
-        text += `<br>${this.name} rolled ${val} against armor class ${target.armor_class}`;
+        text += `<br>${this.name} rolled ${val} 
+            against armor class ${target.armor_class}`;
         if (val >= target.armor_class) {
             text += `<br>Hit!`;
         } else {
@@ -109,6 +111,49 @@ class Character {
         text += `<br>${target.name} has ${target.hit_points} hit points left`;
         return text 
     }
+    move_to_target() {
+        var text = '';
+        while (this.movement > 0) {
+            // stop moving if target is adjacent
+            if (this.grid_square.neighbors.includes(this.target.grid_square)) {
+                text += `<br>${this.name} has reached ${this.target.name}`;
+                break
+            }
+            // move into the neighboring square that is closest to the target
+            var closest_dist = 9e9;
+            var next_square = null;
+            for (let i=0; i<this.grid_square.neighbors.length; i++) {
+                let square = this.grid_square.neighbors[i];
+                if (square.occupied) {
+                    // skip occupied squares
+                    continue
+                }
+                // compute euclidean distance
+                let dx = square.i - this.target.x;
+                let dy = square.j - this.target.y;
+                let dr = Math.sqrt(dx * dx + dy * dy);
+                if (dr < closest_dist) {
+                    closest_dist = dr;
+                    next_square = square;
+                }
+            }
+            if (next_square == null) {
+                text += '<br>No open grid squares available';
+                return text;
+            }
+            // perform movement
+            text += `<br>${this.name} moved from (${this.x}, ${this.y}) `;
+            this.grid_square.occupied = false;
+            this.grid_square = next_square;
+            this.grid_square.occupied = true;
+            this.x = this.grid_square.i;
+            this.y = this.grid_square.j;
+            this.movement -= 5;
+            text += `to (${this.x}, ${this.y}) `;
+        }
+        return text;
+    }
+    
     turn(encounter) {
         var text = `<br>${this.name}'s turn`;
 
@@ -118,16 +163,51 @@ class Character {
             return text;
         }
         // choose target
-        this.choose_target(encounter);
+        text += this.choose_target(encounter);
+        if (this.target == null) {
+            return text
+        }
+
+        if (this.ranged_weapon == null) {
+            text += '<br>No ranged weapon';
+
+            // move to target
+            text += this.move_to_target();
+
+            // compute range to target
+            this.choose_target(encounter);
+
+            // atack or dash
+            if (this.grid_square.neighbors.includes(this.target.grid_square)) {
+                text += this.attack(this.target, this.melee_weapon);
+            } else {
+                text += '<br>Dash';
+                this.movement = this.speed;
+                text += this.move_to_target();
+            }
+
+            // Case 1: target within 5 feet -> melee attack
+            
+
+            // Case 2: no ranged weapon, target within 30 ft. -> move and melee attack
+            // Case 3: no ranged weapon, target >30 ft. -> dash to target
+        } else {
+            // Case 4: ranged weapon, target within normal range -> ranged attack
+            // Case 5: ranged weapon, max range > target > normal range -> move and ranged attack
+            // Case 6: ranged weapon, target > max range -> move towards target
+        }
 
         // choose weapon
 
         // movement
 
         // attack
-        if (this.target != null) {
-            text += this.attack(this.target);
-        }
+        // if (this.target != null) {
+        //     text += this.attack(this.target);
+        // }
+
+        // end turn
+        this.movement = this.speed;
         return text;
     }
 }
@@ -146,9 +226,7 @@ class Commoner extends Character {
         this.armor_class = 10;
         this.hit_points = 4;
 
-        this.melee_attack_bonus = 2;
-        this.melee_damage_dice = [4];
-        this.melee_damage_bonus = 0;
+        this.melee_weapon = new Weapon('club', 2, 0, [4], 'bludgeoning', 5, null);
     }
 }
 class Bandit extends Character {
@@ -166,14 +244,8 @@ class Bandit extends Character {
         this.armor_class = 12;
         this.hit_points = 11;
 
-        this.melee_attack_bonus = 3;
-        this.melee_damage_dice = [6];
-        this.melee_damage_bonus = 1;
-
-        this.ranged_attack_bonus = 3;
-        this.ranged_damage_dice = [8];
-        this.ranged_damage_bonues = 1;
-        this.ranged_attack_range = 80;
+        this.melee_weapon = new Weapon('scimitar', 3, 1, [6], 'slashing', 5, null);
+        this.ranged_weapon = new Weapon('crossbow', 3, 1, [8], 'piercing', 80, 320);
     }
 }
 class Guard extends Character {
@@ -191,9 +263,7 @@ class Guard extends Character {
         this.armor_class = 16;
         this.hit_points = 11;
 
-        this.melee_attack_bonus = 3;
-        this.melee_damage_dice = [6];
-        this.melee_damage_bonus = 1;
+        this.melee_weapon = new Weapon('spear', 3, 1, [6], 'piercing', 5, null);
     }
 }
 
@@ -290,8 +360,9 @@ class Encounter {
             this.text += `<br>... ${this.characters[i].name}: ${this.characters[i].initiative}`;
         }
         // iterate through rounds
-        for (let i=0; i<10; i++) {
+        for (let i=0; i<1000; i++) {
             this.n_rounds += 1;
+            this.text += `<br>Round ${this.n_rounds}`;
             this.round();
 
             // check for winner
