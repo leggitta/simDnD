@@ -193,9 +193,14 @@ class Character {
         } else {
             this.move_to_target(this.ranged_weapon.normal_range);
 
-            if (this.target_distance <= this.ranged_weapon.normal_range) {
+            if (this.grid_square.neighbors.includes(this.target.grid_square)) {
+                // melee attack if target is adjacent
+                text += this.attack(this.target, this.melee_weapon);
+            } else if (this.target_distance <= this.ranged_weapon.normal_range) {
+                // ranged attack if target within range
                 text += this.attack(this.target, this.ranged_weapon);
             } else {
+                // dash if target outside of range
                 text += '<br>Dash';
                 this.movement = this.speed;
                 text += this.move_to_target(this.ranged_weapon.normal_range);
