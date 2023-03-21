@@ -318,11 +318,12 @@ class Grid {
 }
 
 class Encounter {
-    constructor(characters) {
+    reset(characters) {
         this.characters = characters;
         this.winner = null;
         this.text = "";
         this.n_rounds = 0;
+        this.turn_index = 0;
         this.state = "auto";
         this.active_player = null;
 
@@ -363,32 +364,32 @@ class Encounter {
         for (let i = 0; i < this.characters.length; i++) {
             this.text += `<br>... ${this.characters[i].name}: ${this.characters[i].initiative}`;
         }
-        // iterate through rounds
-        for (let i=0; i<1000; i++) {
-            this.n_rounds += 1;
-            this.text += `<br>Round ${this.n_rounds}`;
-            this.round();
-
-            // check for winner
-            this.check_winner();
-
-            if (this.winner != null) {
-                break
-            }
-        }
+        this.next_turn();
     }
-    round() {
-        // loop through characters and take turns
-        for (let i=0; i<this.characters.length; i++) {
-            let char = this.characters[i];
-            if (char.controller == "computer") {
-                // computer controls character
-                this.text += char.turn(this);
-            } else {
-                // human controls character
-                break
-            }
+    next_turn() {
+        // check for winner
+        this.check_winner();
+        if (this.winner != null) {
+            return 
         }
+        
+        // check for end of round
+        if (this.turn_index >= this.characters.length) {
+            this.n_rounds += 1
+            this.turn_index = 0;
+            this.text += `<br>End of round ${this.n_rounds}`
+        }
+        
+        // define active player
+        this.active_player = this.characters[this.turn_index];
+
+        // computer controls players
+        if (this.active_player.controller == "computer") {
+            this.text += this.active_player.turn(this);
+            this.turn_index += 1;
+            this.next_turn();
+        }
+        // if human controls, await the UI
     }
     check_winner() {
         const teams = [];
@@ -409,6 +410,8 @@ class Encounter {
         return this.winner;
     }
 }
+
+let encounter = new Encounter();
 
 function simulate() {
     const characters = [];
@@ -458,7 +461,8 @@ function simulate() {
     }
 
     // let encounter = new Encounter([c1, c2, c3, guard]);
-    let encounter = new Encounter(characters);
+    // let encounter = new Encounter(characters);
+    encounter.reset(characters);
     document.getElementById("text").innerHTML = encounter.text;
     console.log(encounter);
 }
@@ -490,6 +494,7 @@ function addPlayer(id) {
 
 function ui_move() {
     console.log('move');
+    console.log(encounter.active_player);
 }
 function ui_dash() {
     console.log('dash');

@@ -11,75 +11,82 @@
 <label for="Height">Height</label>
 <input type="text" id="grid_h" name="Height" value="10">
 
-<h2 contenteditable="true" id="t1_name">
-    Team 1
-</h2>
+<div style="display:flex">
+    <div>
+        <h2 contenteditable="true" id="t1_name">
+            Team 1
+        </h2>
+        
+        <form>
+            <input type="radio" id="t1_human" name="t1_ctrl" value="human">
+            <label for="t1_human">Human</label>
+            <input type="radio" id="t1_comp" name="t1_ctrl" value="computer" checked>
+            <label for="t1_comp">Computer</label>
+        </form>
+        
+        <table id="t1" border="1">
+            <tr>
+                <td>Name</td>
+                <td>Type</td>
+                <td>X</td>
+                <td>Y</td>
+            </tr>
+            <tr>
+                <td contenteditable="true">Carl</td>
+                <td>
+                    <select id="t1_p1_type">
+                        <option value="bandit">Bandit</option>
+                        <option value="commoner">Commoner</option>
+                        <option value="guard">Guard</option>
+                    </select>
+                </td>
+                <td contenteditable="true">0</td>
+                <td contenteditable="true">0</td>
+            </tr>
+        </table>
+        <button onclick="addPlayer('t1')">
+            Add player
+        </button>
+    </div>
+    <div style="width: 50px"></div>
+    <div>
+        <h2 contenteditable="true" id="t2_name">
+            Team 2
+        </h2>
+        
+        <form>
+            <input type="radio" id="t2_human" name="t2_ctrl" value="human">
+            <label for="t2_human">Human</label>
+            <input type="radio" id="t2_comp" name="t2_ctrl" value="computer" checked>
+            <label for="t2_comp">Computer</label>
+        </form>
+        
+        <table id="t2" border="1">
+            <tr>
+                <td>Name</td>
+                <td>Type</td>
+                <td>X</td>
+                <td>Y</td>
+            </tr>
+            <tr>
+                <td contenteditable="true">Gary</td>
+                <td>
+                    <select id="t2_p1_type">
+                        <option value="bandit">Bandit</option>
+                        <option value="commoner">Commoner</option>
+                        <option value="guard">Guard</option>
+                    </select>
+                </td>
+                <td contenteditable="true">9</td>
+                <td contenteditable="true">9</td>
+            </tr>
+        </table>
+        <button onclick="addPlayer('t2')">
+            Add player
+        </button>
+    </div>
+</div>
 
-<form>
-    <input type="radio" id="t1_human" name="t1_ctrl" value="human">
-    <label for="t1_human">Human</label>
-    <input type="radio" id="t1_comp" name="t1_ctrl" value="computer" checked>
-    <label for="t1_comp">Computer</label>
-</form>
-
-<table id="t1" border="1">
-    <tr>
-        <td>Name</td>
-        <td>Type</td>
-        <td>X</td>
-        <td>Y</td>
-    </tr>
-    <tr>
-        <td contenteditable="true">Carl</td>
-        <td>
-            <select id="t1_p1_type">
-                <option value="bandit">Bandit</option>
-                <option value="commoner">Commoner</option>
-                <option value="guard">Guard</option>
-            </select>
-        </td>
-        <td contenteditable="true">0</td>
-        <td contenteditable="true">0</td>
-    </tr>
-</table>
-<button onclick="addPlayer('t1')">
-    Add player
-</button>
-
-<h2 contenteditable="true" id="t2_name">
-    Team 2
-</h2>
-
-<form>
-    <input type="radio" id="t2_human" name="t2_ctrl" value="human">
-    <label for="t2_human">Human</label>
-    <input type="radio" id="t2_comp" name="t2_ctrl" value="computer" checked>
-    <label for="t2_comp">Computer</label>
-</form>
-
-<table id="t2" border="1">
-    <tr>
-        <td>Name</td>
-        <td>Type</td>
-        <td>X</td>
-        <td>Y</td>
-    </tr>
-    <tr>
-        <td contenteditable="true">Gary</td>
-        <td>
-            <select id="t2_p1_type">
-                <option value="bandit">Bandit</option>
-                <option value="commoner">Commoner</option>
-                <option value="guard">Guard</option>
-            </select>
-        </td>
-        <td contenteditable="true">9</td>
-        <td contenteditable="true">9</td>
-    </tr>
-</table>
-<button onclick="addPlayer('t2')">
-    Add player
-</button>
 
 <br>
 
