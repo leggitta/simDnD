@@ -14,6 +14,14 @@
 <h2 contenteditable="true" id="t1_name">
     Team 1
 </h2>
+
+<form>
+    <input type="radio" id="t1_human" name="t1_ctrl" value="human">
+    <label for="t1_human">Human</label>
+    <input type="radio" id="t1_comp" name="t1_ctrl" value="computer" checked>
+    <label for="t1_comp">Computer</label>
+</form>
+
 <table id="t1" border="1">
     <tr>
         <td>Name</td>
@@ -41,6 +49,14 @@
 <h2 contenteditable="true" id="t2_name">
     Team 2
 </h2>
+
+<form>
+    <input type="radio" id="t2_human" name="t2_ctrl" value="human">
+    <label for="t2_human">Human</label>
+    <input type="radio" id="t2_comp" name="t2_ctrl" value="computer" checked>
+    <label for="t2_comp">Computer</label>
+</form>
+
 <table id="t2" border="1">
     <tr>
         <td>Name</td>
@@ -70,6 +86,12 @@
 <button type="simulate" onclick="simulate()">
     Fight!
 </button>
+
+<div id="ui_move" onclick="ui_move()">Move</div>
+<div id="ui_dash" onclick="ui_dash()">Dash</div>
+<div id="ui_melee" onclick="ui_melee()">Melee Attack</div>
+<div id="ui_ranged" onclick="ui_ranged()">Ranged Attack</div>
+<div id="ui_end" onclick="ui_end()">End Turn</div>
 
 <div id="text"></div>
 <script src="main.js"></script>

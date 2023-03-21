@@ -29,6 +29,7 @@ class Character {
     constructor(x=0, y=0) {
         this.name = "Blank";
         this.team = "Team A";
+        this.controller = 'computer';
         this.target = null;
 
         // position
@@ -322,6 +323,8 @@ class Encounter {
         this.winner = null;
         this.text = "";
         this.n_rounds = 0;
+        this.state = "auto";
+        this.active_player = null;
 
         // create grid
         this.grid = new Grid();
@@ -377,7 +380,14 @@ class Encounter {
     round() {
         // loop through characters and take turns
         for (let i=0; i<this.characters.length; i++) {
-            this.text += this.characters[i].turn(this);
+            let char = this.characters[i];
+            if (char.controller == "computer") {
+                // computer controls character
+                this.text += char.turn(this);
+            } else {
+                // human controls character
+                break
+            }
         }
     }
     check_winner() {
@@ -408,6 +418,14 @@ function simulate() {
         // get team name
         let t_name = document.getElementById(`t${team}_name`).innerText;
         
+        // get team controller
+        let t_human = document.getElementById(`t${team}_human`);
+        let t_comp = document.getElementById(`t${team}_comp`);
+        var controller = 'computer';
+        if (t_human.checked) {
+            controller = 'human';
+        }
+
         // get player table
         let tbl = document.getElementById(`t${team}`);
 
@@ -434,6 +452,7 @@ function simulate() {
             }
             c.name = name;
             c.team = t_name;
+            c.controller = controller;
             characters.push(c);
         }
     }
@@ -460,11 +479,27 @@ function addPlayer(id) {
     row.innerHTML = `
         <td contenteditable="true"></td>
         <td><select id="${id}_p${n_rows}_type">
-            <option value="Bandit">Bandit</option>
+            <option value="bandit">Bandit</option>
             <option value="commoner">Commoner</option>
             <option value="guard">Guard</option>
         </select></td>
         <td contenteditable="true">${x}</td>
         <td contenteditable="true">${y}</td>
     `;
+}
+
+function ui_move() {
+    console.log('move');
+}
+function ui_dash() {
+    console.log('dash');
+}
+function ui_melee() {
+    console.log('melee');
+}
+function ui_ranged() {
+    console.log('ranged');
+}
+function ui_end() {
+    console.log('end');
 }
