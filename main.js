@@ -188,7 +188,7 @@ class Character {
                 text += this.attack(this.target, this.melee_weapon);
             } else {
                 text += '<br>Dash';
-                this.movement = this.speed;
+                this.movement += this.speed;
                 text += this.move_to_target();
             }
         } else {
@@ -318,6 +318,9 @@ class Grid {
 }
 
 class Encounter {
+    constructor() {
+        this.characters = [];
+    }
     reset(characters) {
         this.characters = characters;
         this.winner = null;
@@ -410,7 +413,6 @@ class Encounter {
         return this.winner;
     }
 }
-
 let encounter = new Encounter();
 
 function simulate() {
@@ -459,9 +461,6 @@ function simulate() {
             characters.push(c);
         }
     }
-
-    // let encounter = new Encounter([c1, c2, c3, guard]);
-    // let encounter = new Encounter(characters);
     encounter.reset(characters);
     document.getElementById("text").innerHTML = encounter.text;
     console.log(encounter);
@@ -495,16 +494,97 @@ function addPlayer(id) {
 function ui_move() {
     console.log('move');
     console.log(encounter.active_player);
+    encounter.state = "move";
 }
 function ui_dash() {
     console.log('dash');
+    encounter.state = "dash";
 }
 function ui_melee() {
     console.log('melee');
+    encounter.state = "melee";
 }
 function ui_ranged() {
     console.log('ranged');
+    encounter.state = "ranged";
+}
+function ui_disengage() {
+    console.log('disengage');
+    encounter.state = "disengage";
 }
 function ui_end() {
     console.log('end');
+    encounter.state = "auto";
+    encounter.turn_index += 1;
+    encounter.next_turn();
+    document.getElementById("text").innerHTML = encounter.text;
+}
+
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+canvas.addEventListener('mousemove', mousemove);
+canvas.addEventListener('mousedown', mousedown);
+
+function mousedown(event) {
+    switch (encounter.state) {
+        case 'move':
+            break;
+        case 'melee':
+            break;
+        case 'ranged':
+            break;
+        case 'dash':
+            break;
+        case 'disengage':
+            break;
+    }
+}
+
+function mousemove(event) {
+    // draw grid squares
+    let W = canvas.width;
+    let H = canvas.height;
+    let nX = parseInt(document.getElementById("grid_w").value);
+    let nY = parseInt(document.getElementById("grid_h").value);
+    let w = Math.floor(W / nX);
+    let h = Math.floor(W / nY);
+    
+    ctx.clearRect(0, 0, W, H);
+    for (let i=0; i<nX; i++) {
+        for (let j=0; j<nY; j++) {
+            ctx.beginPath();
+            ctx.rect(i*w, j*h, w, h)
+            ctx.stroke();
+        }
+    }
+
+    // get active character
+    let char = encounter.active_player;
+    switch (encounter.state) {
+        case 'move':
+            // draw highlighted square
+            let x = Math.floor(event.offsetX / w) * w;
+            let y = Math.floor(event.offsetY / h) * h;
+
+            ctx.beginPath();
+            ctx.fillStyle = "#aaffaa";
+            ctx.fillRect(x, y, w, h);
+            ctx.stroke();
+            break;
+        case 'melee':
+            break;
+        case 'ranged':
+            break;
+        case 'dash':
+            break;
+        case 'disengage':
+            break;
+    }
+    // place characters on grid
+    for (let i=0; i<encounter.characters.length; i++) {
+        let char = encounter.characters[i];
+        ctx.font = "10px serif";
+        ctx.fillStyle = "#000000"
+        ctx.fillText(char.name, char.x * w + 5, char.y * h + 15);
+    }
 }
