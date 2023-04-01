@@ -88,7 +88,7 @@ class Square {
         }
         if (this.occupant != null) {
             let char = this.occupant;
-            ctx.font = "10px serif";
+            ctx.font = "15px serif";
             ctx.fillStyle = "#000000"
             ctx.fillText(char.name, this.i*W + 5, this.j*H + 15);
         }

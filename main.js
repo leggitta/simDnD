@@ -492,9 +492,39 @@ function addPlayer(id) {
 }
 
 function ui_move() {
-    console.log('move');
-    console.log(encounter.active_player);
     encounter.state = "move";
+
+    let char = encounter.active_player;
+
+    // determine moveable squares, starting with adjacent squares
+    const can_move = [];
+    for (let i=0; i<char.grid_square.neighbors.length; i++) {
+        let sq = char.grid_square.neighbors[i];
+        if (!sq.occupied) {
+            console.log(sq);
+            can_move.push(sq);
+        }
+    }
+    var can_move_len = can_move.length;
+
+    // determine number of squared active character can move
+    let n_squares = Math.floor(encounter.active_player.speed / 5);
+    for (let i=1; i<n_squares; i++) {
+        // loop through open neighbors
+        for (let j=0; j<can_move_len; j++) {
+            let this_sq = can_move[j];
+            // loop through neighbors of neighbors
+            for (let k=0; k<this_sq.neighbors.length; k++) {
+                let sq = this_sq.neighbors[k];
+                // add unoccupied squares to list of moveable squares
+                if (!sq.occupied & !can_move.includes(sq)) {
+                    can_move.push(sq);
+                }
+            }
+        }
+        can_move_len = can_move.length;
+    }
+    char.can_move = can_move;
 }
 function ui_dash() {
     console.log('dash');
@@ -526,8 +556,29 @@ canvas.addEventListener('mousemove', mousemove);
 canvas.addEventListener('mousedown', mousedown);
 
 function mousedown(event) {
+    // draw grid squares
+    let W = canvas.width;
+    let H = canvas.height;
+    let nX = parseInt(document.getElementById("grid_w").value);
+    let nY = parseInt(document.getElementById("grid_h").value);
+    let w = Math.floor(W / nX);
+    let h = Math.floor(W / nY);
+
+    // draw highlighted square
+    let x = Math.floor(event.offsetX / w);
+    let y = Math.floor(event.offsetY / h);
+    
+    // get active character
+    let char = encounter.active_player;
     switch (encounter.state) {
         case 'move':
+            // let dx = Math.abs(char.x - x);
+            // let dy = Math.abs(char.y - y);
+            // let dr = dx + dy;
+
+            char.x = x;
+            char.y = y;
+
             break;
         case 'melee':
             break;
@@ -560,6 +611,18 @@ function mousemove(event) {
 
     // get active character
     let char = encounter.active_player;
+    for (let i=0; i<char.can_move.length; i++) {
+        let x = char.can_move[i].i * w;
+        let y = char.can_move[i].j * h;
+
+        ctx.beginPath();
+        ctx.fillStyle = "#11ff11";
+        ctx.rect(x, y, w, h);
+        ctx.fillRect(x, y, w, h);
+        ctx.stroke();
+    }
+
+
     switch (encounter.state) {
         case 'move':
             // draw highlighted square
